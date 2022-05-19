@@ -21,12 +21,5 @@ spec:
         imagePullPolicy: IfNotPresent
         command: [ "/bin/bash", "-c", "--" ]
         args: [ "while true; do sleep 30; done;" ]
-        volumeMounts:
-        - name: loadtest
-          mountPath: /load_test
-          subPath: "load_test"
         ports:
         - containerPort: 60000
-      volumes:
-        - path: /data
-          type: Directory
