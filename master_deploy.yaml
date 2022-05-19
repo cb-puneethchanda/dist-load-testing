@@ -1,0 +1,32 @@
+
+apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+kind: Deployment
+metadata:
+  name: jmeter-master1
+  labels:
+    jmeter_mode: master
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      jmeter_mode: master
+  template:
+    metadata:
+      labels:
+        jmeter_mode: master
+    spec:
+      containers:
+      - name: jmmaster
+        image: cbpuneethchanda/jmmaster
+        imagePullPolicy: IfNotPresent
+        command: [ "/bin/bash", "-c", "--" ]
+        args: [ "while true; do sleep 30; done;" ]
+        volumeMounts:
+        - name: loadtest
+          mountPath: /load_test
+          subPath: "load_test"
+        ports:
+        - containerPort: 60000
+      volumes:
+        - path: /data
+          type: Directory
