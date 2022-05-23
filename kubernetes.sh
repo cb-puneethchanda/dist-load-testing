@@ -1,24 +1,38 @@
 #!/bin/sh
+while getopts n:f: flag
+do
+    case "${flag}" in
+        n) namespace=${OPTARG};;
+        f) filepath=${OPTARG};;
+    esac
+done
 
-kubectl create configmap masterconfig --from-file=/Users/cb-it-01-1557/docker/dist-load-test/data
+# echo "namespace: $namespace";
+kubectl create namespace $namespace
 
-kubectl create -f master_deploy.yaml
+kubectl create configmap -n $namespace masterconfig --from-file=/Users/cb-it-01-1557/docker/dist-load-test/data
 
-kubectl create -f slaves_deploy.yaml
+kubectl create -n $namespace -f master_deploy.yaml
 
-kubectl wait --for=condition=ready pod $pod
+kubectl create  -n $namespace -f slaves_deploy.yaml
 
-pod=`kubectl get pods | grep 'jmeter-master-c' | awk '{print $1}'`
+kubectl create  -n $namespace -f service.yaml
+
+pod=`kubectl get pods -n $namespace | grep 'jmeter-master-c' | awk '{print $1}'`
 
 echo "pod " $pod
 
-kubectl exec -ti $pod -- /bin/bash -c "jmeter -n -t load_test/Http.jmx -Rjmeter-slaves-svc -l output.csv -e -f -o data"
+sleep 4
+
+echo ""
+
+kubectl exec -ti -n $namespace $pod -- /bin/bash -c "jmeter -n -t load_test/$filepath -Rjmeter-slaves-svc -l output.csv -e -f -o data"
 
 
 echo "jmx run successful!"
-kubectl exec -ti $pod -- /bin/bash -c "mv output.csv data/"
 
-kubectl exec -ti $pod -- /bin/bash -c "mv jmeter.log data/"
+kubectl exec -ti -n $namespace $pod -- /bin/bash -c "mv output.csv data/"
 
-kubectl cp $pod:data/ /Users/cb-it-01-1557/docker/dist-load-test/data/pod
+kubectl exec -ti -n $namespace $pod -- /bin/bash -c "mv jmeter.log data/"
 
+kubectl cp -n $namespace $pod:data/ /Users/cb-it-01-1557/docker/dist-load-testing/data/pod
