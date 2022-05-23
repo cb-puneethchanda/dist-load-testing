@@ -1,8 +1,7 @@
-
-apiVersion: apps/v1 # for versions before 1.9.0 use apps/v1beta2
+apiVersion: apps/v1 
 kind: Deployment
 metadata:
-  name: jmeter-master1
+  name: jmeter-master-c
   labels:
     jmeter_mode: master
 spec:
@@ -21,5 +20,12 @@ spec:
         imagePullPolicy: IfNotPresent
         command: [ "/bin/bash", "-c", "--" ]
         args: [ "while true; do sleep 30; done;" ]
+        volumeMounts:
+          - name: loadtest
+            mountPath: /load_test
         ports:
         - containerPort: 60000
+      volumes:
+      - name: loadtest 
+        configMap:
+          name: masterconfig
